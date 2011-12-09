@@ -10,20 +10,9 @@ ARTICLE: "dropbox" "Dropbox utility words for MacOSX"
 "This is a set of words to create links from your ~/Library/folder to your ~/Dropbox folder on client computers. The idea is to create a folder structure in your Dropbox folder which mirrors the folders in your ~/Library. Then on other computers using your Dropbox account, you run words from this vocabulary to create the symlinks. I worte these words as my first attempt in learning Factor and as such they are not the most robust or efficeint code possible. I did strive to insure no data is lost and to be safe when moving things around."
 ;
 
-HELP: db-folder-path
-{ $description "Contains the path to your Dropbox folder. The default is ~/Dropbox and should be changed if your Dropbox is located somewhere else on your volume" }
-;
-
-HELP: db-appsupport-name
-{ $description "Constant for the Application Support folder." }
-;
-
-HELP: db-library-path 
-{ $values { "path" "Path to " { $link db-folder-path } " folder" } }
-;
-
-HELP: db-appsupport-path 
-{ $values { "path" "Path to your ~/Library/Application\ Support folder" } }
+HELP: db-library-folder 
+{ $values { "path" "Path to ~/Dropbox/Private/Library folder" } }
+{ $description "You should change this if your folder is in a different location" }
 ;
     
 HELP: db-is-linked-to-db? 

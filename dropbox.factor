@@ -86,6 +86,13 @@ CONSTANT: db-preferences-name "Preferences"
     ;
 
 : db-main ( -- )
-    db-library-folder absolute-path folder-entries
-    [ db-library-item ] each
+    db-library-folder exists?
+    [
+        db-library-folder absolute-path folder-entries
+        [ db-library-item ] each
+    ] [
+        "The folder " db-library-folder append
+        " does not exist and it must to continue." append print
+        " Check configuration setting in the \"dropbox\" vocabulary" print
+    ] if
     ;
