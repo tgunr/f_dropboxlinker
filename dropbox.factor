@@ -1,9 +1,8 @@
 ! Copyright (C) 2011 PolyMicro Systems.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors combinators io io.directories
-io.directories.hierarchy io.files io.files.info io.files.links
-io.files.private io.files.types io.pathnames kernel locals sequences
-tools.continuations folder ;
+USING: accessors combinators io io.directories io.files io.files.info
+io.files.links io.files.private io.files.types io.pathnames kernel
+locals sequences tools.continuations folder ;
 
 IN: dropbox
 
@@ -17,13 +16,13 @@ CONSTANT: preferences-name "Preferences"
 :: is-linked-to-db? ( symlink -- ? )
     "Dropbox" symlink read-link start
     [ " to Dropbox" print f ]
-    [ " not Dropbox" print symlink move-aside t ] if
+    [ " not Dropbox" print t ] if
     ;
 
 :: check-symbolic? ( path -- ? )
     path link-info type>> +symbolic-link+ =
     [ ", is symbolic" write  path is-linked-to-db? ]
-    [ " , move aside" print  path break move-aside t ] if
+    [ " , moving aside" print t ] if
     ;
 
 :: moved-path? ( path -- ? )
@@ -37,48 +36,52 @@ CONSTANT: preferences-name "Preferences"
     user-library-folder as-directory
     ;
 
+FROM: folder => with-directory-entries  ;
 : do-appsupport ( -- )
     db-library-folder as-directory appsupport-name append
     [
         ! don't process hidden files like .DS_Store, only folders
-        [ hidden? not ] filter
+        [ is-hidden? not ] filter
         ! switch to ~/L/AS
         user-library-path as-directory appsupport-name append
         absolute-path cd
         ! build seq of folders in ~/L/AS to be processed
-        [ cwd "/" append prepend ] map
+        [ name>> cwd "/" append prepend ] map
         ! filter out all that already point to dropbox
         [ moved-path? ] filter
         ! This is the seq to be linked to Library
         [ link-to-current-directory ] each
-    ] with-directory-files
+    ] with-directory-entries
     ;
 
+FROM: folder => with-directory-entries ;
 : do-preferences ( -- )
     db-library-folder as-directory preferences-name append
     [
         ! don't process hidden files like .DS_Store, only folders
-        [ hidden? not ] filter
+        [ is-hidden? not ] filter
         ! switch to ~/L/P
         user-library-path as-directory preferences-name append
         absolute-path cd
         ! build seq of folders in ~/P to be processed
-        [ cwd "/" append prepend ] map
+        [ name>> cwd "/" append prepend ] map
         ! filter out all that already point to dropbox
         [ moved-path? ] filter
         ! This is the seq to be linked to Library
         [ link-to-current-directory ] each
-    ] with-directory-files
+    ] with-directory-entries
  ;
 
-: do-link ( folder -- )
-    user-library-path absolute-path [ cd ] keep
-    "/" append [ prepend ] keep
-    [ moved-path? ] dip swap
-    [ break cwd "/" append prepend
-      link-to-current-directory
+:: do-link ( folder -- )
+    user-library-path absolute-path as-directory
+    [ set-current-directory ] keep
+    folder append 
+    moved-path?
+    [
+        db-library-folder as-directory folder append
+        link-to-current-directory
     ]
-    [ drop ] if
+    [ ] if
 ;
 
 : process-folder ( name -- )
@@ -97,6 +100,7 @@ CONSTANT: preferences-name "Preferences"
     ] each
     ;
 
+FROM: folder => with-directory-entries ;
 : dbmain ( -- )
     db-library-folder exists?
     [
