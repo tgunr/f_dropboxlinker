@@ -37,40 +37,22 @@ CONSTANT: preferences-name "Preferences"
     ;
 
 FROM: folder => with-directory-entries  ;
-: do-appsupport ( -- )
-    db-library-folder as-directory appsupport-name append
-    [
-        ! don't process hidden files like .DS_Store, only folders
-        [ is-hidden? not ] filter
-        ! switch to ~/L/AS
-        user-library-path as-directory appsupport-name append
-        absolute-path cd
-        ! build seq of folders in ~/L/AS to be processed
-        [ name>> cwd "/" append prepend ] map
-        ! filter out all that already point to dropbox
-        [ moved-path? ] filter
-        ! This is the seq to be linked to Library
-        [ link-to-current-directory ] each
-    ] with-directory-entries
-    ;
-
-FROM: folder => with-directory-entries ;
-: do-preferences ( -- )
-    db-library-folder as-directory preferences-name append
-    [
-        ! don't process hidden files like .DS_Store, only folders
-        [ is-hidden? not ] filter
-        ! switch to ~/L/P
-        user-library-path as-directory preferences-name append
-        absolute-path cd
-        ! build seq of folders in ~/P to be processed
-        [ name>> cwd "/" append prepend ] map
-        ! filter out all that already point to dropbox
-        [ moved-path? ] filter
-        ! This is the seq to be linked to Library
-        [ link-to-current-directory ] each
-    ] with-directory-entries
- ;
+:: do-directory-with-name ( name -- )
+  db-library-folder as-directory name append
+  [
+    ! don't process hidden files like .DS_Store, only folders
+    [ is-hidden? not ] filter
+    ! switch to ~/L/AS
+    user-library-path as-directory name append
+    absolute-path cd
+    ! build seq of folders in ~/L/AS to be processed
+    [ name>> cwd "/" append prepend ] map
+    ! filter out all that already point to dropbox
+    [ moved-path? ] filter
+    ! This is the seq to be linked to Library
+    [ link-to-current-directory ] each
+  ] with-directory-entries
+  ;
 
 :: do-link ( folder -- )
     user-library-path absolute-path as-directory
@@ -86,8 +68,8 @@ FROM: folder => with-directory-entries ;
 
 : process-folder ( name -- )
     {
-        { [ dup appsupport-name = ] [ drop do-appsupport ] }
-        { [ dup preferences-name = ] [ drop do-preferences ] }
+        { [ dup appsupport-name = ] [ do-directory-with-name ] }
+        { [ dup preferences-name = ] [ do-directory-with-name ] }
         [ do-link ]
     } cond
     ;
