@@ -42,8 +42,10 @@ HELP: moved-path?
   { $see-also check-symbolic? }
 ;
 
-HELP: do-appsupport 
-{ $values { "folder" "Folder in the Dropbox" } }
+HELP: do-directory-with-name 
+{ $values
+  { "folder" "Folder in the Dropbox" }
+}
 { $description "Processes the \"~/Library/Application Support\" folder by taking the content of the \"~/Dropbox/Private/Library/Application Support\" and creating a sequence containing all of the folders in it which are not already symlinked to the users Library. For each Dropbox folder, the equivilent user Library folder is examined. If a link to the Dropbox folder alreasy exists it is skipped. If a folder is already existing in the user Library, it is renamed so as not to delete anything and can be compared later if any content needs to be merged into the Dropbox." }
   ;
 
