@@ -1,8 +1,8 @@
 ! Copyright (C) 2011 PolyMicro Systems.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors combinators io io.directories io.files io.files.info
-io.files.links io.files.private io.files.types io.pathnames kernel
-locals sequences tools.continuations folder ;
+USING: accessors combinators io folder io.pathnames io.backend io.directories io.files
+io.files.info io.files.links io.files.private io.files.types kernel
+locals sequences tools.continuations ;
 
 IN: dropbox
 
@@ -44,7 +44,7 @@ FROM: folder => with-directory-entries  ;
     [ is-hidden? not ] filter
     ! switch to ~/L/AS
     user-library-path as-directory name append
-    absolute-path cd
+    normalize-path cd
     ! build seq of folders in ~/L/AS to be processed
     [ name>> cwd "/" append prepend ] map
     ! filter out all that already point to dropbox
@@ -55,11 +55,12 @@ FROM: folder => with-directory-entries  ;
   ;
 
 :: do-link ( folder -- )
-    user-library-path absolute-path as-directory
+    user-library-path normalize-path as-directory
     [ set-current-directory ] keep
     folder append 
     moved-path?
     [
+        break
         db-library-folder as-directory folder append
         link-to-current-directory
     ]
@@ -86,7 +87,7 @@ FROM: folder => with-directory-entries ;
 : dbmain ( -- )
     db-library-folder exists?
     [
-        db-library-folder absolute-path
+        db-library-folder normalize-path
         [ library-items ] with-directory-entries
     ] [
         "The folder " db-library-folder append
