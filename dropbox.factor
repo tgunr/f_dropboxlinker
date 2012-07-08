@@ -86,7 +86,7 @@ CONSTANT: db-preferences-name "Preferences"
     ;
 
 : db-main ( -- )
-    db-library-folder exists?
+    db-library-folder absolute-path exists?
     [
         db-library-folder absolute-path folder-entries
         [ db-library-item ] each
