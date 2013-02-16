@@ -1,15 +1,15 @@
 ! Copyright (C) 2011 PolyMicro Systems.
 ! See http://factorcode.org/license.txt for BSD license.
-USING: accessors folders folders io io.directories io.files
-io.files.info io.files.links io.files.private io.files.types
-io.pathnames kernel locals sequences tools.continuations ;
+USING: accessors folder io io.directories io.files io.files.info
+io.files.links io.files.private io.files.types io.pathnames kernel
+locals sequences tools.continuations namespaces ;
 
 IN: dropbox
 
 TUPLE: dropbox ;
 
-CONSTANT: db-library-folder " ~/Dropbox/Private/Library"
-CONSTANT: user-library-folder " ~/Library"
+CONSTANT: db-library-folder "~/Dropbox/Private/Library"
+CONSTANT: user-library-folder "~/Library"
 CONSTANT: db-appsupport-name  "Application\ Support"
 CONSTANT: db-preferences-name "Preferences"
 
@@ -36,35 +36,35 @@ CONSTANT: db-preferences-name "Preferences"
     user-library-folder  "/" append
     ;
 
-:: do-appsupport ( folder -- )
-    folder folder-content-names
-    user-library-path db-appsupport-name append
-    absolute-path cd
-    [ cwd "/" append prepend ] map  
-    [ db-moved-path? ] filter
-    [ file-name ] map
-    folder full-path folder-entries
-    [ folder-in-seq? ] with filter 
-    [ folder-link-cwd ] each
+FROM: folder => pathname ;
+: link-to-cwd ( seq -- )
+    [ dup name>> cwd as-directory prepend
+      db-moved-path? 
+      [ link-to-current-directory ] [ drop ] if
+    ] each
+    ;  
+    
+FROM: io.directories => link-to-current-directory directory-entries ;
+:: do-folder-name ( folder db-folder-name -- )
+    folder folder-entries
+    [ name>> ".DS_Store" = not ] filter
+    user-library-path db-folder-name append
+    absolute-path dup cd current-directory set
+    link-to-cwd ;
+
+: do-appsupport ( folder -- )
+    db-appsupport-name do-folder-name
     ;
 
-:: do-preferences ( folder -- )
-    folder folder-content-names
-    user-library-path db-preferences-name append
-    absolute-path cd
-    [ cwd "/" append prepend ] map  
-    [ db-moved-path? ] filter
-    [ file-name ] map
-    folder full-path folder-entries
-    [ folder-in-seq? ] with filter 
-    [ folder-link-cwd ] each
-;
-
+: do-preferences ( folder -- )
+    db-preferences-name do-folder-name
+    ;
+    
 :: do-link ( folder -- )
-    user-library-path absolute-path [ cd ] keep
+    user-library-path absolute-path [ current-directory set ] keep
     "/" append folder name>> append
     db-moved-path? 
-    [ folder folder-link-cwd ] [ ] if
+    [ folder link-to-current-directory ] [ ] if
 ;
 
 :: db-process-appsupport ( folder -- )
@@ -85,10 +85,11 @@ CONSTANT: db-preferences-name "Preferences"
     [ db-process-folder ] [ drop ] if
     ;
 
+FROM: string => to-folder ;
 : db-main ( -- )
-    db-library-folder absolute-path exists?
+    db-library-folder exists?
     [
-        db-library-folder absolute-path folder-entries
+        db-library-folder to-folder folder-entries
         [ db-library-item ] each
     ] [
         "The folder " db-library-folder append
@@ -96,3 +97,4 @@ CONSTANT: db-preferences-name "Preferences"
         " Check configuration setting in the \"dropbox\" vocabulary" print
     ] if
     ;
+MAIN: db-main
