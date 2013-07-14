@@ -2,7 +2,7 @@
 ! See http://factorcode.org/license.txt for BSD license.
 USING: accessors folder io io.directories io.files io.files.info
 io.files.links io.files.private io.files.types io.pathnames kernel
-locals sequences tools.continuations namespaces ;
+locals namespaces regexp sequences ;
 
 IN: dropbox
 
@@ -48,6 +48,7 @@ FROM: io.directories => link-to-current-directory directory-entries ;
 :: do-folder-name ( folder db-folder-name -- )
     folder folder-entries
     [ name>> ".DS_Store" = not ] filter
+    [ name>> R/ .*conflicted copy.*/ matches? not ] filter
     user-library-path db-folder-name append
     absolute-path dup cd current-directory set
     link-to-cwd ;
@@ -67,7 +68,7 @@ FROM: io.directories => link-to-current-directory directory-entries ;
     [ folder link-to-current-directory ] [ ] if
 ;
 
-:: db-process-appsupport ( folder -- )
+:: db-process-folder ( folder -- )
     folder name>> db-appsupport-name =
     [ folder do-appsupport ]
     [ folder name>> db-preferences-name =
@@ -76,13 +77,13 @@ FROM: io.directories => link-to-current-directory directory-entries ;
     ] if
     ;
 
-:: db-process-folder ( folder -- )
-    folder db-process-appsupport
+:: db-process-item ( folder -- )
+    folder db-process-folder
     ;
 
 : db-library-item ( folder-entry -- )
     dup type>> +directory+ =
-    [ db-process-folder ] [ drop ] if
+    [ db-process-item ] [ drop ] if
     ;
 
 FROM: string => to-folder ;
